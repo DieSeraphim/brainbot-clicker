@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="ru" id="html-root">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#050510">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🤖</text></svg>">
+
+  <!-- SEO -->
+  <title>Brainbot 67: Clicker</title>
+  <meta name="description" content="Brainbot 67: Clicker — киберпанк кликер нового поколения. Прокачивай кибер-руки Brainbot'а, фарми очки и вознесись до Сигмы!">
+
+  <!-- Yandex Games SDK v2 -->
+  <script src="https://yandex.ru/games/sdk/v2"></script>
+
+  <!-- Styles -->
+  <link rel="stylesheet" href="style.css?v=18">
+
+  <!-- П.1.6.1.8 / 1.6.2.7 — Блокируем контекстное меню -->
+  <script>
+    document.addEventListener('contextmenu', function(e) { e.preventDefault(); }, { capture: true });
+    document.addEventListener('selectstart', function(e) { e.preventDefault(); });
+  </script>
+</head>
+<body>
+
+<!-- ============================================================
+     BACKGROUND WRAPPER
+     ============================================================ -->
+<div id="bg-wrapper">
+
+  <!-- Premium Lava Lamp / Ambient Aurora Background -->
+  <div class="ambient-aurora" aria-hidden="true">
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+    <div class="blob blob-3"></div>
+    <div class="blob blob-4"></div>
+  </div>
+  
+  <!-- Subtle noise texture for premium matte feel -->
+  <div class="bg-texture" aria-hidden="true"></div>
+
+  <!-- Floating meme background elements -->
+  <div class="bg-float" style="left:5%; animation-duration:18s; animation-delay:0s;">🤖</div>
+  <div class="bg-float" style="left:15%; animation-duration:23s; animation-delay:3s;">⚡</div>
+  <div class="bg-float" style="left:25%; animation-duration:19s; animation-delay:7s;">🔥</div>
+  <div class="bg-float" style="left:72%; animation-duration:21s; animation-delay:1s;">💀</div>
+  <div class="bg-float" style="left:82%; animation-duration:25s; animation-delay:5s;">🎯</div>
+  <div class="bg-float" style="left:90%; animation-duration:17s; animation-delay:9s;">⚡</div>
+  <div class="bg-float" style="left:55%; animation-duration:20s; animation-delay:12s;">🤖</div>
+  <div class="bg-float" style="left:40%; animation-duration:22s; animation-delay:4s;">💎</div>
+
+
+
+  <!-- ============================================================
+       GAME CONTAINER — Responsive Adaptive Dashboard
+       ============================================================ -->
+  <div id="game-container">
+
+    <!-- Particle layer -->
+    <div id="particle-container"></div>
+    <!-- Crit flash overlay -->
+    <div id="crit-flash"></div>
+    <!-- Frenzy rage overlay -->
+    <div id="frenzy-overlay"></div>
+
+    <!-- Notifications -->
+    <div id="notification-container" role="status" aria-live="polite"></div>
+
+    <!-- ====================================================
+         LEFT STAGE (HERO TAP AREA & CORE STATS)
+         ==================================================== -->
+    <section id="game-stage">
+      <!-- HEADER -->
+      <header id="game-header">
+        <div class="header-title">⚡ Brainbot 67: Clicker</div>
+        <div class="header-right">
+          <div id="mock-badge" title="Локальный режим — SDK недоступен">ТЕСТ</div>
+          <!-- КНОПКА РУЛЕТКИ -->
+          <button id="wheel-btn" class="cyber-header-btn" aria-label="Колесо Сигма-Фортуны" title="Колесо Фортуны">
+            <span class="wheel-icon">🎡</span>
+            <span class="wheel-badge" id="wheel-badge">!</span>
+          </button>
+          <!-- КНОПКА 1: Включает / отключает все звуковые эффекты (SFX) кроме музыки -->
+          <button id="sfx-btn" class="cyber-audio-btn" aria-label="Вкл/выкл звуковые эффекты" title="Звуковые эффекты (SFX)">
+            <span class="audio-btn-icon" id="sfx-icon"></span>
+            <span class="audio-btn-text">ЗВУК</span>
+          </button>
+          <!-- КНОПКА 2: Включает / отключает фоновую кибер-музыку (BGM) -->
+          <button id="bgm-btn" class="cyber-audio-btn" aria-label="Вкл/выкл музыку" title="Фоновая музыка (BGM)">
+            <span class="audio-btn-icon" id="bgm-icon"></span>
+            <span class="audio-btn-text">МУЗЫКА</span>
+          </button>
+        </div>
+      </header>
+
+      <!-- STATS BAR -->
+      <div id="stats-bar" role="status" aria-label="Текущие очки и статистика">
+        <div class="stat-item">
+          <span class="stat-label" id="label-points">E-поинты</span>
+          <span class="stat-value" id="points-display">0</span>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-item">
+          <span class="stat-label" id="label-persec">ФАРМ</span>
+          <span class="stat-value" id="cps-display">0/с</span>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-item">
+          <span class="stat-label" id="label-click">Клик</span>
+          <span class="stat-value" id="click-power-display">1</span>
+        </div>
+      </div>
+
+      <!-- CANVAS — ROBOT HANDS -->
+      <div id="canvas-area" role="button" aria-label="Кликни по рукам BrainBOT'а!">
+        <canvas id="bot-canvas" aria-hidden="true"></canvas>
+        <!-- Golden chip -->
+        <div id="golden-chip" aria-label="Золотой чип 67 — нажми!">
+          <div class="chip-inner">🪙</div>
+        </div>
+        <!-- Mini Boss QTE -->
+        <div id="mini-boss" class="mini-boss" style="display:none;" aria-label="Мемный босс — кликай!">
+          <div class="mini-boss-hp-bar"><div class="mini-boss-hp-fill" id="mini-boss-hp-fill"></div></div>
+          <div class="mini-boss-avatar" id="mini-boss-avatar">🛸</div>
+          <div class="mini-boss-timer" id="mini-boss-timer">6s</div>
+        </div>
+      </div>
+
+      <!-- PRESTIGE PROGRESS BAR -->
+      <div id="prestige-threshold">
+        <div class="prestige-progress-track">
+          <div class="prestige-progress-fill"></div>
+        </div>
+        <div class="prestige-progress-label">0 / 1M</div>
+      </div>
+
+      <!-- PRESTIGE BUTTON -->
+      <div id="prestige-area">
+        <button id="prestige-btn" disabled aria-label="Вознесение Сигмы — Престиж">
+          <span id="prestige-btn-text">🚀 ВОЗНЕСЕНИЕ СИГМЫ</span>
+        </button>
+        <div class="prestige-info">
+          <div class="prestige-level-display">Ур. <span id="prestige-level">0</span></div>
+          <div class="prestige-mult-display">Множитель: <span id="prestige-multiplier">x1.0</span></div>
+        </div>
+      </div>
+
+      <!-- BOOST TIMER -->
+      <div id="boost-timer" role="timer" aria-live="polite"></div>
+
+      <!-- AD BUTTONS -->
+      <div id="ad-buttons">
+        <button class="ad-btn" id="sigma-boost-btn" aria-label="Посмотреть рекламу для Сигма-Буста x2">
+          <span class="ad-icon">📺</span><span class="ad-label">Буст x2</span>
+        </button>
+        <button class="ad-btn" id="instant-drop-btn" aria-label="Посмотреть рекламу для мгновенного дропа">
+          <span class="ad-icon">💰</span><span class="ad-label">Дроп</span>
+        </button>
+        <button class="ad-btn" id="auto-click-btn" aria-label="Авто-кликер на 30 секунд">
+          <span class="ad-icon">🌀</span><span class="ad-label">Авто-клик</span>
+        </button>
+        <button class="ad-btn" id="giga-drop-btn" aria-label="Гига-дроп — 10 минут дохода сразу">
+          <span class="ad-icon">⚡</span><span class="ad-label">Гига-дроп</span>
+        </button>
+      </div>
+
+      <!-- DEV PANEL -->
+      <div id="dev-panel" style="display:none;">
+        <button class="dev-btn" id="dev-money-btn">💰 +1 Трлн (DEV)</button>
+        <button class="dev-btn dev-btn-danger" id="dev-reset-btn">🔄 ПОЛНЫЙ СБРОС (DEV)</button>
+      </div>
+    </section>
+
+    <!-- ====================================================
+         RIGHT PANEL (SHOP, UPGRADES, TROPHIES, QUESTS, SKINS)
+         ==================================================== -->
+    <section id="game-panel">
+      <!-- SLIM SWIPE & COLLAPSE HANDLE -->
+      <div id="panel-handle" class="panel-handle" role="button" aria-label="Скрыть или открыть меню" title="Потяните или нажмите для скрытия">
+        <div class="handle-bar-pill"></div>
+        <div class="handle-bar-text">
+          <span class="handle-icon">▼</span>
+          <span class="handle-label">Скрыть</span>
+        </div>
+      </div>
+
+      <!-- TABS (FULL WIDTH, SMOOTH HORIZONTAL SCROLL) -->
+      <div class="tab-bar" role="tablist">
+        <button class="tab-btn active" data-tab="generators" role="tab" aria-selected="true" aria-controls="tab-generators">
+          🏭 Фарм
+        </button>
+        <button class="tab-btn" data-tab="upgrades" role="tab" aria-selected="false" aria-controls="tab-upgrades">
+          ⚡ Буст кликов
+        </button>
+        <button class="tab-btn" data-tab="perks" role="tab" aria-selected="false" aria-controls="tab-perks">
+          🔮 Перки
+        </button>
+        <button class="tab-btn" data-tab="achievements" role="tab" aria-selected="false" aria-controls="tab-achievements" id="tab-btn-achievements">
+          🏆 Достижения
+        </button>
+        <button class="tab-btn" data-tab="quests" role="tab" aria-selected="false" aria-controls="tab-quests" id="tab-btn-quests">
+          🎯 Квесты
+        </button>
+        <button class="tab-btn" data-tab="skins" role="tab" aria-selected="false" aria-controls="tab-skins">
+          🎨 Скины
+        </button>
+        <button class="tab-btn" data-tab="stats" role="tab" aria-selected="false" aria-controls="tab-stats">
+          📊 Статы
+        </button>
+        <button class="tab-btn" data-tab="top" role="tab" aria-selected="false" aria-controls="tab-top">
+          🌍 Топ
+        </button>
+      </div>
+
+      <!-- TAB: GENERATORS -->
+      <div id="tab-generators" class="tab-panel active" role="tabpanel">
+        <div class="shop-header-row">
+          <div class="shop-section-title">Пассивные генераторы</div>
+          <div class="buy-mode-selector" role="group" aria-label="Режим покупки">
+            <button class="buy-mode-btn active" data-mode="1">x1</button>
+            <button class="buy-mode-btn" data-mode="10">x10</button>
+            <button class="buy-mode-btn" data-mode="max">МАКС</button>
+          </div>
+        </div>
+        <div id="shop-list"></div>
+      </div>
+
+      <!-- TAB: UPGRADES -->
+      <div id="tab-upgrades" class="tab-panel" role="tabpanel">
+        <div class="shop-header-row">
+          <div class="shop-section-title">⚡ Буст кликов</div>
+        </div>
+        <div id="click-shop-list"></div>
+      </div>
+
+      <!-- TAB: SIGMA PERKS -->
+      <div id="tab-perks" class="tab-panel" role="tabpanel">
+        <div class="perks-header">
+          <div class="perks-header-left">
+            <div class="perks-title">🔮 СИГМА-ПЕРКИ</div>
+            <div class="perks-subtitle">Улучшения за Очки Сигмы (SP) после Вознесения</div>
+          </div>
+          <div class="perks-sp-pill">
+            <span class="sp-icon">🔮</span>
+            <span class="sp-amount" id="perks-sp-amount">0 SP</span>
+          </div>
+        </div>
+        <div class="perks-list" id="perks-list"></div>
+      </div>
+
+      <!-- TAB: ACHIEVEMENTS -->
+      <div id="tab-achievements" class="tab-panel" role="tabpanel">
+        <div class="ach-header">
+          <div class="ach-header-title">🏆 ДОСТИЖЕНИЯ</div>
+          <div class="ach-progress-text" id="ach-progress-text">0 / 20</div>
+        </div>
+        <div class="ach-grid" id="ach-grid"></div>
+      </div>
+
+      <!-- TAB: DAILY QUESTS -->
+      <div id="tab-quests" class="tab-panel" role="tabpanel">
+        <div class="quests-header">
+          <div class="quests-title">🎯 ЕЖЕДНЕВНЫЕ КВЕСТЫ</div>
+          <div class="quests-reset" id="quests-reset-timer">Обнов.: 00:00</div>
+        </div>
+        <div class="quest-list" id="quest-list"></div>
+      </div>
+
+      <!-- TAB: SKINS -->
+      <div id="tab-skins" class="tab-panel" role="tabpanel">
+        <div class="skins-title">🎨 СКИНЫ BRAINBOT'А</div>
+        <div class="skins-grid" id="skins-grid"></div>
+      </div>
+
+      <!-- TAB: DETAILED STATISTICS -->
+      <div id="tab-stats" class="tab-panel" role="tabpanel">
+        <div class="stats-panel-header">
+          <div class="stats-panel-title">📊 СТАТИСТИКА BRAINBOT'А</div>
+        </div>
+        <div class="stats-subtabs" role="tablist">
+          <button class="stats-subtab-btn active" data-subtab="all">Все</button>
+          <button class="stats-subtab-btn" data-subtab="time">⏱️ Время</button>
+          <button class="stats-subtab-btn" data-subtab="clicks">🖱️ Клики</button>
+          <button class="stats-subtab-btn" data-subtab="income">💰 Доход</button>
+          <button class="stats-subtab-btn" data-subtab="progress">🚀 Прогресс</button>
+        </div>
+
+        <div class="stats-group" data-cat="time">
+          <div class="stats-group-title">⏱️ ВРЕМЯ В ИГРЕ</div>
+          <div class="stat-card-row">
+            <span class="sc-label">Текущий сеанс:</span>
+            <span class="sc-value neon-cyan" id="stat-time-session">0с</span>
+          </div>
+          <div class="stat-card-row">
+            <span class="sc-label">За сегодня:</span>
+            <span class="sc-value neon-cyan" id="stat-time-today">0с</span>
+          </div>
+          <div class="stat-card-row">
+            <span class="sc-label">За неделю:</span>
+            <span class="sc-value neon-cyan" id="stat-time-week">0с</span>
+          </div>
+          <div class="stat-card-row">
+            <span class="sc-label">За месяц:</span>
+            <span class="sc-value neon-cyan" id="stat-time-month">0с</span>
+          </div>
+          <div class="stat-card-row">
+            <span class="sc-label">За всё время:</span>
+            <span class="sc-value neon-green" id="stat-time-all">0с</span>
+          </div>
+        </div>
+
+        <div class="stats-group" data-cat="clicks">
+          <div class="stats-group-title">🖱️ КЛИКИ И ТАПЫ</div>
+          <div class="stat-card-row">
+            <span class="sc-label">Всего кликов:</span>
+            <span class="sc-value neon-green" id="stat-clicks-total">0</span>
+          </div>
+          <div class="stat-card-row">
+            <span class="sc-label">Кликов за сеанс:</span>
+            <span class="sc-value" id="stat-clicks-session">0</span>
+          </div>
+          <div class="stat-card-row">
+            <span class="sc-label">Кликов сегодня:</span>
+            <span class="sc-value" id="stat-clicks-today">0</span>
+          </div>
+          <div class="stat-card-row">
+            <span class="sc-label">Критических ударов:</span>
+            <span class="sc-value neon-gold" id="stat-clicks-crits">0</span>
+          </div>
+          <div class="stat-card-row">
+            <span class="sc-label">Максимальное комбо:</span>
+            <span class="sc-value neon-magenta" id="stat-clicks-combo">x1</span>
+          </div>
+          <div class="stat-card-row">
+            <span class="sc-label">Золотых чипов поймано:</span>
+            <span class="sc-value neon-gold" id="stat-clicks-chips">0</span>
+          </div>
+        </div>
+
+        <div class="stats-group" data-cat="income">
+          <div class="stats-group-title">💰 ЭКОНОМИКА И ДОХОД</div>
+          <div class="stat-card-row">
+            <span class="sc-label">Всего заработано:</span>
+            <span class="sc-value neon-green" id="stat-income-total">0 E</span>
+          </div>
+          <div class="stat-card-row">
+            <span class="sc-label">Заработано кликами:</span>
+            <span class="sc-value" id="stat-income-clicks">0 E</span>
+          </div>
+          <div class="stat-card-row">
+            <span class="sc-label">Заработано пассивно:</span>
+            <span class="sc-value" id="stat-income-passive">0 E</span>
+          </div>
+          <div class="stat-card-row">
+            <span class="sc-label">Текущий доход (CPS):</span>
+            <span class="sc-value neon-cyan" id="stat-income-cps">0 E/с</span>
+          </div>
+          <div class="stat-card-row">
+            <span class="sc-label">Сила одного клика:</span>
+            <span class="sc-value neon-cyan" id="stat-income-clickpower">1 E</span>
+          </div>
+        </div>
+
+        <div class="stats-group" data-cat="progress">
+          <div class="stats-group-title">🚀 ИГРОВОЙ ПРОГРЕСС</div>
+          <div class="stat-card-row">
+            <span class="sc-label">Уровень Вознесения:</span>
+            <span class="sc-value neon-magenta" id="stat-prog-prestige">0</span>
+          </div>
+          <div class="stat-card-row">
+            <span class="sc-label">Множитель Вознесения:</span>
+            <span class="sc-value neon-magenta" id="stat-prog-mult">x1.0</span>
+          </div>
+          <div class="stat-card-row">
+            <span class="sc-label">Всего генераторов:</span>
+            <span class="sc-value" id="stat-prog-generators">0 шт.</span>
+          </div>
+          <div class="stat-card-row">
+            <span class="sc-label">Куплено бустов клика:</span>
+            <span class="sc-value" id="stat-prog-upgrades">0 / 30</span>
+          </div>
+          <div class="stat-card-row">
+            <span class="sc-label">Разблокировано скинов:</span>
+            <span class="sc-value" id="stat-prog-skins">1 / 12</span>
+          </div>
+          <div class="stat-card-row">
+            <span class="sc-label">Выполнено квестов:</span>
+            <span class="sc-value" id="stat-prog-quests">0</span>
+          </div>
+          <div class="stat-card-row">
+            <span class="sc-label">Открыто достижений:</span>
+            <span class="sc-value neon-gold" id="stat-prog-achievements">0</span>
+          </div>
+        </div>
+
+        <!-- YANDEX ACTIONS (Review & Shortcut) -->
+        <div class="stats-group" data-cat="all">
+          <div class="stats-group-title">⚡ СЕРВИСЫ ЯНДЕКС</div>
+          <div class="yandex-actions-row">
+            <button id="yandex-review-btn" class="cyber-service-btn" aria-label="Оценить игру в Яндекс Играх">
+              ⭐ Оценить игру
+            </button>
+            <button id="yandex-shortcut-btn" class="cyber-service-btn" aria-label="Добавить ярлык на рабочий стол">
+              📲 Ярлык (+10M E)
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB: LEADERBOARD / TOP -->
+      <div id="tab-top" class="tab-panel" role="tabpanel">
+        <div class="lb-header">
+          <div class="lb-title">🌍 SIGMA ТОП-10</div>
+          <button class="lb-refresh-btn" id="lb-refresh-btn">↻ Обновить</button>
+        </div>
+        <div id="lb-auth-banner" class="lb-auth-banner" style="display:none;">
+          <div class="lb-auth-text">🔑 Войдите через Яндекс, чтобы сохранить рекорд в ТОПе и синхронизировать прогресс!</div>
+          <button id="lb-auth-btn" class="lb-auth-btn">Войти</button>
+        </div>
+        <div class="lb-list" id="lb-list"></div>
+      </div>
+    </section>
+
+    <!-- ====================================================
+         OFFLINE INCOME MODAL
+         ==================================================== -->
+    <div id="offline-modal" class="modal-overlay" role="dialog" aria-modal="true" aria-label="Офлайн-доход">
+      <div class="modal-box">
+        <span class="modal-icon">🤖</span>
+        <h2 class="modal-title" id="offline-title">BrainBOT фармил,<br>пока ты спал!</h2>
+        <p class="modal-text" id="offline-while">Пока тебя не было</p>
+        <div class="modal-highlight" id="offline-time">—</div>
+        <p class="modal-text" id="offline-earned-text">BrainBOT заработал</p>
+        <div class="modal-highlight" id="offline-amount">0 E</div>
+        <div class="modal-buttons modal-buttons-col">
+          <button class="btn-primary btn-gold" id="offline-double-btn">🎁 Забрать x2 (с рекламой)</button>
+          <button class="btn-secondary" id="offline-ok">Забрать обычно</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ====================================================
+         PRESTIGE CONFIRM MODAL
+         ==================================================== -->
+    <div id="prestige-modal" class="modal-overlay" role="dialog" aria-modal="true" aria-label="Вознесение Сигмы">
+      <div class="modal-box">
+        <span class="modal-icon">🚀</span>
+        <h2 class="modal-title">Вознесение Сигмы</h2>
+        <p class="modal-text">Ты потеряешь все очки и апгрейды, но получишь</p>
+        <div class="modal-highlight" id="prestige-bonus-text">+10% к доходу</div>
+        <p class="modal-warning">⚠️ Это действие необратимо</p>
+        <div class="modal-buttons">
+          <button class="btn-secondary" id="prestige-cancel">Отмена</button>
+          <button class="btn-primary" id="prestige-confirm">Вознестись! 🚀</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ====================================================
+         WHEEL OF FORTUNE MODAL
+         ==================================================== -->
+    <div id="wheel-modal" class="modal-overlay" role="dialog" aria-modal="true" aria-label="Колесо Сигма-Фортуны">
+      <div class="modal-box wheel-modal-box">
+        <button class="modal-close-btn" id="wheel-close-btn" aria-label="Закрыть рулетку">✕</button>
+        <span class="modal-icon">🎡</span>
+        <h2 class="modal-title">Колесо Сигма-Фортуны</h2>
+        <p class="modal-text">Испытай удачу и сорви куш!</p>
+        
+        <div class="wheel-canvas-container">
+          <div class="wheel-pointer">▼</div>
+          <canvas id="wheel-canvas" width="280" height="280"></canvas>
+        </div>
+        
+        <div id="wheel-status-text" class="modal-highlight">—</div>
+
+        <div class="modal-buttons modal-buttons-col">
+          <button class="btn-primary" id="wheel-spin-free-btn">🎁 Крутить бесплатно</button>
+          <button class="btn-primary btn-gold" id="wheel-spin-ad-btn">📺 Крутить за рекламу</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ====================================================
+         ACHIEVEMENT UNLOCK MODAL (auto-hide)
+         ==================================================== -->
+    <div id="ach-unlock-modal" class="modal-overlay" role="dialog" aria-modal="true" style="display:none;">
+      <div class="modal-box" style="text-align:center;">
+        <span class="modal-icon" id="ach-unlock-emoji">🏆</span>
+        <h2 class="modal-title" style="font-size:13px;">ДОСТИЖЕНИЕ!</h2>
+        <div class="modal-highlight" id="ach-unlock-name">—</div>
+        <p class="modal-text" id="ach-unlock-desc">—</p>
+        <div class="modal-highlight" style="font-size:12px;" id="ach-unlock-reward">+0 E</div>
+      </div>
+    </div>
+
+  </div><!-- /#game-container -->
+</div><!-- /#bg-wrapper -->
+
+<!-- ============================================================
+     SCRIPTS — порядок важен!
+     ============================================================ -->
+<script src="js/audio.js?v=18"></script>
+<script src="js/economy.js?v=18"></script>
+<script src="js/yandex.js?v=18"></script>
+<script src="js/achievements.js?v=18"></script>
+<script src="js/skins.js?v=18"></script>
+<script src="js/handHitboxes.js?v=18"></script>
+<script src="js/game.js?v=18"></script>
+
+<!-- Stats/live update + quests reset timer + context menu block -->
+<script>
+  // П.1.6.1.8 — дополнительная блокировка лонгтапа
+  document.addEventListener('touchstart', function(e) {
+    if (e.touches.length > 1) e.preventDefault();
+  }, { passive: false });
+
+  // Живые обновления статистики
+  setInterval(() => {
+    const gs = window.Economy && window.Economy.GameState;
+    const fmt = window.Economy && window.Economy.formatNumber;
+    if (!gs || !fmt) return;
+
+    const set = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+    set('stat-total-clicks',  fmt(gs.totalClicks));
+    set('stat-golden-chips',  gs.goldenChipClicks);
+    set('stat-total-earned',  fmt(gs.totalEarned));
+    set('stat-prestige',      gs.prestigeLevel);
+    set('stat-sdk-mode',      window.YandexSDK?.isMockMode() ? 'MOCK' : 'PROD');
+    set('stat-multiplier',    'x' + gs.prestigeMultiplier.toFixed(1));
+  }, 500);
+
+  // Таймер до обновления квестов
+  setInterval(() => {
+    const el = document.getElementById('quests-reset-timer');
+    if (!el) return;
+    const now = new Date();
+    const tomorrow = new Date(now);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    tomorrow.setHours(0, 0, 0, 0);
+    const diff = Math.max(0, Math.floor((tomorrow - now) / 1000));
+    const h = String(Math.floor(diff / 3600)).padStart(2, '0');
+    const m = String(Math.floor((diff % 3600) / 60)).padStart(2, '0');
+    el.textContent = `Обнов.: ${h}:${m}`;
+  }, 30000);
+</script>
+
+</body>
+</html>
